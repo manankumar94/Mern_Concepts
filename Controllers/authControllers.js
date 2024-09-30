@@ -1,6 +1,7 @@
 // Always create class because it's easier to call methods by class
 import userModel from "../Models/users.js";
 import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 
 class AuthController{
     static home= async (req, res)=>{
@@ -24,9 +25,20 @@ class AuthController{
                     const passCompare= await bcrypt.compare(password, userExist.password);
                     // if(userExist.password === password){
                     if(passCompare){
+                        // token generate
+                        const token = jwt.sign(
+                            {userID: userExist._id},       // Payload
+                            process.env.JWT_SECRET_KEY,    // SecretKey
+                            {expiresIn: "1d"},            // Expiration Time
+                        ) 
                         return res
                                 .status(200)
-                                .json({Message: "User LogIn Successfull."})
+                                .json({
+                                    Id: userExist._id,
+                                    Name: userExist.username,
+                                    Message: "User LogedIn Successfully.",
+                                    token,
+                                })
                     } else{
                         return res
                                 .status(400)
@@ -65,6 +77,7 @@ class AuthController{
 
                 // inBuilt way to create a user
                 // const newUser= await userModel.create({username, email, password});
+
                 const newUser= new userModel({
                     username: username,
                     email: email,
